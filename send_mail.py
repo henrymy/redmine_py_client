@@ -1,65 +1,104 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import base64
+from datetime import date, timedelta
 from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import formatdate
 import smtplib
+import yaml
 
-from redminelib import Redmine
-from datetime import date, timedelta
+from redminelib import Redmine, exceptions
 
-from redminerc import REDMINE_URL,API_KEY,PRJ_ID,FROM
+with open('config.yml', 'r') as f:
+    config = yaml.safe_load(f)
 
-import test.fake_issues
-import pdb
+REDMINE_URL = config['redmine']['url']
+API_KEY = config['redmine']['api_key']
+PRJ_ID = config['redmine']['project_id']
+MAIL_SERVER = config['mailserver']['name']
+PORT = config['mailserver']['port']
+FROM = config['address']['from']
+TO = config['address']['to']
 
-MAIL_SERVER = "localhost"
-PORT=8025
-TO_TEST = "zhang@mac.local"
+DEBUG = config['debug']['trace']
+if DEBUG:
+    import pdb
+    pdb.set_trace()
+    MAIL_SERVER = 'localhost'
+    PORT = 8025
 
-redmine = Redmine(REDMINE_URL, key=API_KEY)
-#issues = redmine.issue.filter(project_id=PRJ_ID)
-issues = test.fake_issues.get_fake_issues()
+FAKE_ISSUES = config['debug']['fake_issues']
+if FAKE_ISSUES:
+    import test.fake_issues
+    issues = test.fake_issues.get_fake_issues()
+else:
+    redmine = Redmine(REDMINE_URL, key=API_KEY)
+    issues = redmine.issue.filter(project_id=PRJ_ID, sort='due_date:desc')
+
 today = date.today()
 yesterday = today - timedelta(days=1)
+with open('saved_data.yml', 'r') as f:
+    saved_data = yaml.safe_load(f)
 
-pdb.set_trace()
 delayed_issues = []
 until_today_issues = []
+due_unknown_issues = []
 for issue in issues:
-    issue_info = ' '.join(
-        [str(issue.id),
-         issue.assigned_to,
-         str(issue.due_date),
-         issue.subject
-        ])
+    issue_info = ''
+    try:
+        getattr(issue, 'due_date')
+        issue_info = '\t'.join(
+            [str(issue.id),
+             str(issue.due_date),
+             str(issue.assigned_to),
+             issue.subject
+            ])
+    except exceptions.ResourceAttrError:
+        issue_info = '\t'.join(
+            [str(issue.id),
+             u'---未設定---',
+             str(issue.assigned_to),
+             issue.subject
+            ])
+        due_unknown_issues.append(issue_info)
+        continue
     if issue.due_date == today:
         until_today_issues.append(issue_info)
     if issue.due_date < today:
         delayed_issues.append(issue_info)
 
-total = len(until_today_issues) + len(delayed_issues)
+total = len(due_unknown_issues) + len(delayed_issues)
+diff = total - saved_data['sum_yesterday']
+if diff >= 0:
+    sign = '+'
+else:
+    sign = '-'
 
 main_text = ""
 HELLO = (u'本日期限または期限超過の未完了チケットについて連絡します。\n'
           '各チームにて、期限通りの完了をお願いします。\n')
 main_text += HELLO
-SUM = u"現在期限超過チケットの件数は:{0}\n".format(len(delayed_issues))
+SUM = u"現在期限超過(未設定も含む)チケットの件数は:{0}\n".format(len(delayed_issues))
+DIFF = u"前日との差分は: {0}{1}\n".format(sign, abs(diff))
 main_text += SUM
-main_text += u'--------本日までのチケット一覧--------'
-main_text += '\n'
+main_text += u'--------本日までのチケット一覧--------\n'
+main_text += u'--ID--  ----期限----  ----担当----  ----題名----\n'
 for line in until_today_issues:
     main_text += line
     main_text += '\n'
-main_text += u'---------------------------------------'
-main_text += '\n'
+main_text += u'---------------------------------------\n'
 
-main_text += u'--------期限切れのチケット一覧--------'
-main_text += '\n'
+main_text += u'--------期限切れ(未設定も含む)のチケット一覧--------\n'
+main_text += u'--ID--  ----期限----  ----担当----  ----題名----\n'
 for line in delayed_issues:
     main_text += line
     main_text += '\n'
-main_text += u'---------------------------------------'
-main_text += '\n'
+for line in due_unknown_issues:
+    main_text += line
+    main_text += '\n'
+main_text += u'---------------------------------------\n'
 
 charset = "utf-8"
 msg = MIMEText(main_text, "plain", charset)
@@ -67,7 +106,7 @@ msg.replace_header("Content-Transfer-Encoding", "base64")
 msg["Subject"] = u"{0}/{1}/{2}: チケットレポート自動送信".format(
     today.year, today.month, today.day)
 msg["From"] = FROM
-msg["To"] = TO_TEST
+msg["To"] = TO
 msg["Cc"] = ""
 msg["Bcc"] = ""
 msg["Date"] = formatdate(None,True)

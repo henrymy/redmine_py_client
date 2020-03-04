@@ -3,9 +3,12 @@ redmine:
   api_key: abcdefg
   project_id: my_prj
 mailserver: 
-  name: local host
+  name: localhost
   port: 8025
 address:
   from: from@test.local
   to: to@test.local
+debug:
+  trace: false
+  fake_issues: false
 
