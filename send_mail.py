@@ -11,7 +11,8 @@ import yaml
 
 from redminelib import Redmine, exceptions
 
-with open('config.yml', 'r') as f:
+LOCAL_PATH = '/Users/henrymy/develop/redmine_email/'
+with open(LOCAL_PATH + 'config.yml', 'r') as f:
     config = yaml.safe_load(f)
 
 REDMINE_URL = config['redmine']['url']
@@ -39,7 +40,7 @@ else:
 
 today = date.today()
 yesterday = today - timedelta(days=1)
-with open('saved_data.yml', 'r') as f:
+with open(LOCAL_PATH + 'saved_data.yml', 'r') as f:
     saved_data = yaml.safe_load(f)
 
 delayed_issues = []
@@ -122,6 +123,6 @@ server.set_debuglevel(1)
 server.send_message(msg)
 server.quit()
 
-with open('saved_data.yml', 'w') as f:
+with open(LOCAL_PATH + 'saved_data.yml', 'w') as f:
     data = {'sum_yesterday': total}
     f.write(yaml.dump(data, default_flow_style=False))
