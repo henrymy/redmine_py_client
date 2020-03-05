@@ -45,21 +45,25 @@ with open('saved_data.yml', 'r') as f:
 delayed_issues = []
 until_today_issues = []
 due_unknown_issues = []
+MIN_LEN = 5
 for issue in issues:
     issue_info = ''
+    assigned_to_str = str(issue.assigned_to)
+    if len(assigned_to_str) < MIN_LEN:
+        assigned_to_str += '    '
     try:
         getattr(issue, 'due_date')
         issue_info = '\t'.join(
             [str(issue.id),
              str(issue.due_date),
-             str(issue.assigned_to),
+             assigned_to_str,
              issue.subject
             ])
     except exceptions.ResourceAttrError:
         issue_info = '\t'.join(
             [str(issue.id),
              u'---未設定---',
-             str(issue.assigned_to),
+             assigned_to_str,
              issue.subject
             ])
         due_unknown_issues.append(issue_info)
@@ -77,21 +81,23 @@ else:
     sign = '-'
 
 main_text = ""
-HELLO = (u'本日期限または期限超過の未完了チケットについて連絡します。\n'
+HELLO = (u'お疲れ様です。チケット状況の自動配信を行います。\n'
+          '本日期限または期限超過の未完了チケットについて連絡します。\n'
           '各チームにて、期限通りの完了をお願いします。\n')
 main_text += HELLO
-SUM = u"現在期限超過(未設定も含む)チケットの件数は:{0}\n".format(len(delayed_issues))
+SUM = u"現在期限超過(未設定も含む)チケットの件数は:{0}\n".format(total)
 DIFF = u"前日との差分は: {0}{1}\n".format(sign, abs(diff))
 main_text += SUM
+main_text += DIFF
 main_text += u'--------本日までのチケット一覧--------\n'
-main_text += u'--ID--  ----期限----  ----担当----  ----題名----\n'
+main_text += u'--ID--  ----期限----  ----担当----      ----題名----\n'
 for line in until_today_issues:
     main_text += line
     main_text += '\n'
 main_text += u'---------------------------------------\n'
 
 main_text += u'--------期限切れ(未設定も含む)のチケット一覧--------\n'
-main_text += u'--ID--  ----期限----  ----担当----  ----題名----\n'
+main_text += u'--ID--  ----期限----  ----担当----      ----題名----\n'
 for line in delayed_issues:
     main_text += line
     main_text += '\n'
@@ -115,3 +121,7 @@ server = smtplib.SMTP(MAIL_SERVER, PORT)
 server.set_debuglevel(1)
 server.send_message(msg)
 server.quit()
+
+with open('saved_data.yml', 'w') as f:
+    data = {'sum_yesterday': total}
+    f.write(yaml.dump(data, default_flow_style=False))
