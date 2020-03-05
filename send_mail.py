@@ -6,12 +6,14 @@ from datetime import date, timedelta
 from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import formatdate
+import os
 import smtplib
 import yaml
 
 from redminelib import Redmine, exceptions
 
-LOCAL_PATH = '/Users/henrymy/develop/redmine_email/'
+LOCAL_PATH = os.getcwd()
+LOCAL_PATH += '/'
 with open(LOCAL_PATH + 'config.yml', 'r') as f:
     config = yaml.safe_load(f)
 
