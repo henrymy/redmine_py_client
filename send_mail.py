@@ -115,7 +115,10 @@ msg.replace_header("Content-Transfer-Encoding", "base64")
 msg["Subject"] = u"{0}/{1}/{2}: チケットレポート自動送信".format(
     today.year, today.month, today.day)
 msg["From"] = FROM
-msg["To"] = TO
+if type(TO) is list:
+    msg["To"] = ','.join(TO)
+else:
+    msg["To"] = TO
 msg["Cc"] = ""
 msg["Bcc"] = ""
 msg["Date"] = formatdate(None,True)
