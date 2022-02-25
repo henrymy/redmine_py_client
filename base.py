@@ -68,7 +68,7 @@ class RedmineAPIClient:
 
     # get issues in project filtered by status
     def get_issues_by_prj_and_status(self, project, status):
-        self.get_issues_by_prj_and_status_id(project, status_id)
+        self.get_issues_by_prj_and_status_id(project, status.id)
         return issues
 
     # get issues in project filtered by status_id
