@@ -1,4 +1,6 @@
 __pycache__
 *.yml
 *.log
+config.yml-local
+config.yml-real
 

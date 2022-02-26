@@ -180,10 +180,9 @@ class RedmineAPIClient:
 
     def set_issue_property(self, issue, **kwargs):
         #issue is a ticket obj.
-        self.redmine.update(issue.id, **kwargs)
+        self.redmine.issue.update(issue.id, **kwargs)
 
-    def set_issue_ckkb_step(self, issue, step_info):
-        #issue is a ticket obj.
-        custom_fields=[{'id': 69, 'value': step_info}]
-        self.redmine.issue.update(issue.id, custom_fields=custom_fields)
+    def reply_to_issue(self, issue, notes=''):
+        # reply to issue with specific note
+        self.set_issue_property(issue, notes=notes)
 
