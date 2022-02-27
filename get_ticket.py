@@ -83,11 +83,14 @@ for dev_mem in dev_members:
     working_by_user[user_id] = 0
 print(working_by_user)
 # loop all ticket and add to each user id
+"""
+# use for test single ticket only
 test_issue_id = '83273'
 # get issue object
 test_issue_obj = redmine.get_issue_by_id(test_issue_id)
 test_issues = [test_issue_obj]
-#for issue in test_issues:
+for issue in test_issues:
+"""
 for issue in open_issues:
     issue_obj = redmine.get_issue_by_id(issue.id)
     print(issue)

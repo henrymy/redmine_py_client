@@ -26,13 +26,7 @@ class RedmineAPIClient:
 
     # get project by project id
     def get_prj_by_id(self, project_id):
-        project_obj = None
-        projects = self.get_all_prj()
-        for prj in projects:
-            if prj['identifier'] == project_id:
-                project_obj = prj
-                break
-        return project_obj
+        return self.redmine.project.get(project_id)
 
     # get all subject projects in list
     # PARAM: parent project obj
@@ -75,6 +69,14 @@ class RedmineAPIClient:
     def get_issues_by_prj_and_status_id(self, project, status_id):
         issues = self.redmine.issue.filter(
             project_id=project.id, status_id=status_id)
+        return issues
+
+
+    # get issues in project filtered updated after certain date
+    def get_updated_issues_by_prj_and_status(self, project, status_id, update_date):
+        query_date_str = ">=" + update_date
+        issues = self.redmine.issue.filter(
+            project_id=project.id, status_id=status_id, updated_on=query_date_str)
         return issues
 
     # get all user obj
