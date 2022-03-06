@@ -50,7 +50,7 @@ date_yesterday = datetime.strftime(yesterday, '%Y-%m-%d')
 
 for prj in sub_prj_list:
     print(prj.name)
-    prj_updated_issues = redmine.get_updated_issues_by_prj_and_status(prj, new_status_id, date_yesterday)
+    prj_updated_issues = redmine.get_issues_by_prj_and_status_after_someday(prj, new_status_id, date_yesterday)
     try:
         for issue in prj_updated_issues:
             updated_issues.append(issue)

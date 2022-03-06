@@ -19,6 +19,10 @@ class RedmineAPIClient:
     def __init__(self, url, api_key):
         self.redmine = Redmine(url, key=api_key)
 
+    # return user obj of current user making request
+    def get_current_user(self):
+        return self.redmine.user.get('current')
+
     # get all projects
     def get_all_prj(self):
         projects = self.redmine.project.all()
@@ -73,8 +77,15 @@ class RedmineAPIClient:
 
 
     # get issues in project filtered updated after certain date
-    def get_updated_issues_by_prj_and_status(self, project, status_id, update_date):
+    def get_issues_by_prj_and_status_after_someday(self, project, status_id, update_date):
         query_date_str = ">=" + update_date
+        issues = self.redmine.issue.filter(
+            project_id=project.id, status_id=status_id, updated_on=query_date_str)
+        return issues
+
+    # get issues in project filtered status and date interval
+    def get_issues_by_prj_and_status_between_somedays(self, project, status_id, start_date, end_date):
+        query_date_str = "><" + start_date + "|" + end_date
         issues = self.redmine.issue.filter(
             project_id=project.id, status_id=status_id, updated_on=query_date_str)
         return issues
