@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 import base64
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
@@ -14,6 +15,12 @@ from redminelib import exceptions as redmine_exceptions
 
 import base
 import utils
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--status-id', help='status_id to filter issues.')
+parser.add_argument('--start-date', help='filter issues updated after this date.')
+parser.add_argument('--end-date', help='filter issues updated before this date.')
+args = parser.parse_args()
 
 LOCAL_PATH = os.getcwd()
 LOCAL_PATH += '/'
@@ -53,11 +60,13 @@ user_id_list = []
 for dev_mem in dev_members:
     user_id_list.append(dev_mem['user_id'])
 # define start_date and end_date with yyyy-mm-dd format
-end_date = datetime.now().strftime('%Y-%m-%d')
-last_30_days = datetime.now() - timedelta(30)
-start_date = last_30_days.strftime('%Y-%m-%d')
+end_date = args.end_date
+start_date = args.start_date
 # open and closed are special status_ids which do not have status objects
-status_id = 'closed'
+if not args.status_id:
+    status_id = 'closed'
+else:
+    status_id = args.status_id
 # call generate_report method
 redmine.generate_report(start_date, end_date, sub_prj_list, status_id, user_id_list)
 

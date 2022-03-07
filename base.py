@@ -89,7 +89,12 @@ class RedmineAPIClient:
         return issues
 
     # get issues in project filtered status and date interval
-    def get_issues_by_prj_and_status_between_somedays(self, project, status_id, start_date, end_date):
+    # without start_date or end_date recent 30-days tickets in status will be returned
+    def get_issues_by_prj_and_status_between_somedays(self, project, status_id, start_date=None, end_date=None):
+        if start_date is None or end_date is None:
+            end_date = datetime.now().strftime('%Y-%m-%d')
+            last_30_days = datetime.now() - timedelta(30)
+            start_date = last_30_days.strftime('%Y-%m-%d')
         query_date_str = "><" + start_date + "|" + end_date
         issues = self.redmine.issue.filter(
             project_id=project.id, status_id=status_id, updated_on=query_date_str)
@@ -101,7 +106,7 @@ class RedmineAPIClient:
         self,
         projects,
         status_id,
-        start_date, end_date):
+        start_date=None, end_date=None):
         status_issues = []
         for prj in projects:
             prj_status_issues = self.get_issues_by_prj_and_status_between_somedays(
