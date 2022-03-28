@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- 
 import base64
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import formatdate
@@ -192,7 +192,7 @@ class RedmineAPIClient:
     # check an issue has ever been assigned_to certain user
     # contidion: new value of assigned_to_id property in journal.details == user.id
     def issue_ever_assigned_to_user(self, issue, user_id):
-        for journal in issue.journals:
+        for journal in reversed(issue.journals):
             check_this_id = journal.user.id
             journal_notes = getattr(journal, 'notes', '')
             try:
@@ -205,7 +205,7 @@ class RedmineAPIClient:
     # check an issue has ever been assigned_to certain user list
     # contidion: new value of assigned_to_id property in journal.details in user_ids
     def issue_ever_assigned_to_user_list(self, issue, user_ids):
-        for journal in issue.journals:
+        for journal in reversed(issue.journals):
             check_this_id = journal.user.id
             journal_notes = getattr(journal, 'notes', '')
             try:
@@ -215,13 +215,14 @@ class RedmineAPIClient:
                 pass
         return False 
 
-    # get user obj by user name
-    def get_user_by_name(self, username):
+    # get issue life time
+    # the lifetime of an issue is the interval between created_on and updated_on
+    def get_issue_life_time(self, issue):
         pass
         
     # get all issues assigned to certain user
     def get_issues_assigned_to(self, user):
-    # build a dict with user_id as keys to calculate number of working tickets
+        # build a dict with user_id as keys to calculate number of working tickets
         pass
 
     def set_issue_property(self, issue, **kwargs):
@@ -257,8 +258,8 @@ class RedmineAPIClient:
         # loop all ticket and add to each user id
         for issue in status_issues:
             issue_obj = self.get_issue_by_id(issue.id)
-            print(issue)
-            print('Check if working by users in users_dict...')
+       #     print("%d: %s" % (issue.id, issue.subject))
+       #     print('Check if working by users in users_dict...')
             check_this_id = self.if_working_by_user_list(issue, user_id_list)
             if check_this_id:
                 working_by_user[check_this_id] += 1
