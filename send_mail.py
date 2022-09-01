@@ -19,7 +19,7 @@ with open(LOCAL_PATH + 'config.yml', 'r') as f:
 
 REDMINE_URL = config['redmine']['url']
 API_KEY = config['redmine']['api_key']
-PRJ_ID = config['redmine']['project_id']
+PRJ_ID = config['redmine']['parent_prj_id']
 MAIL_SERVER = config['mailserver']['name']
 PORT = config['mailserver']['port']
 FROM = config['address']['from']
