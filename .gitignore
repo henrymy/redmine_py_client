@@ -3,4 +3,5 @@ __pycache__
 *.log
 config.yml-local
 config.yml-real
+test_api.py
 

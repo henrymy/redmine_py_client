@@ -62,6 +62,7 @@ class RedmineAPIClient:
 
     # get status obj by id 
     def get_status_by_id(self, status_id):
+        #return self.redmine.issue_status.get(int(status_id))
         return self.redmine.issue_status.get(status_id)
 
     # get issue detail by issue id
@@ -80,6 +81,12 @@ class RedmineAPIClient:
             project_id=project.id, status_id=status_id)
         return issues
 
+    # get issues in project filtered created after certain date
+    def get_issues_by_prj_created_after_someday(self, project, status_id, created_on):
+        query_date_str = ">=" + created_on 
+        issues = self.redmine.issue.filter(
+            project_id=project.id, status_id=status_id, created_on=query_date_str)
+        return issues
 
     # get issues in project filtered updated after certain date
     def get_issues_by_prj_and_status_after_someday(self, project, status_id, update_date):
@@ -126,7 +133,7 @@ class RedmineAPIClient:
         
     # get user obj by user id
     def get_user_by_id(self, user_id):
-        user_obj = self.redmine.user.get(user_id)
+        user_obj = self.redmine.user.get(int(user_id))
         return user_obj
         
     def get_issue_custom_fields(self, issue):
@@ -144,6 +151,105 @@ class RedmineAPIClient:
         for custom_field in custom_fields:
             if custom_field.name == step_info_name:
                 return custom_field
+        return None
+
+    # get issue custom field change history from journal
+    # input para: issue object, cf_id str
+    # return value: list of custom field value and datetime obj of timestamp
+    def get_issue_cf_history(self, issue, cf_id):
+        cf_history = []
+        for journal in issue.journals:
+            for detail in journal.details:
+                if detail['property'] == 'cf' and detail['name'] == cf_id:
+                    cf_history.append(
+                        {'updated_on':journal['created_on'],
+                        'cf_value':detail['new_value']})
+                    continue
+        return cf_history
+
+    # get issue status change history from journal
+    # input para: issue object
+    # return value: list of status obj and datetime object of timestamp
+    def get_issue_status_history(self, issue):
+        status_history = []
+        for journal in issue.journals:
+            for detail in journal.details:
+                if detail['property'] == 'attr' and detail['name'] == 'status_id':
+                    status = self.get_status_by_id(detail['new_value'])
+                    status_history.append(
+                        {'updated_on':journal['created_on'],
+                        'status':status})
+                    continue
+        return status_history
+
+    # get issue assigned change history from journal
+    # input para: issue object
+    # return value: list of assigned user obj and datetime object of timestamp
+    def get_issue_assigned_history(self, issue):
+        assigned_history = []
+        for journal in issue.journals:
+            for detail in journal.details:
+                if detail['property'] == 'attr' and detail['name'] == 'assigned_to_id':
+                    if 'new_value' in detail:
+                        user_id = detail['new_value']
+                        try:
+                            user = self.get_user_by_id(user_id)
+                        except redmine_exceptions.ResourceNotFoundError:
+                            user = user_id
+                    else:
+                        user = ''
+                    assigned_history.append(
+                        {'updated_on':journal['created_on'],
+                        'assigned_to':user})
+                    continue
+        return assigned_history
+
+    # get issue reply count with: timestamp, user and charactor count
+    # input para: issue object
+    # return value: dict of reply count for each user
+    def get_issue_reply_history_from_journal(self, issue):
+        user_reply_dict = {}
+        # build user -> reply dictionary
+        for journal in issue.journals:
+            timestamp = journal.created_on
+            user_id = journal.user.id
+            try:
+                notes = journal.notes
+            except redmine_exceptions.ResourceAttrError:
+                notes = ''
+            if user_id not in user_reply_dict:
+                user_reply_dict[user_id] = {'summary':{},'details':[]}
+            user_reply_dict[user_id]['details'].append(
+                {'timestamp':timestamp,
+                 'notes':notes})
+        # calculate summary for each user
+        for user_id in user_reply_dict.keys():
+            details = user_reply_dict[user_id]['details']
+            count = len(details)
+            char_count = 0
+            for detail in details:
+                char_count = char_count + len(detail['notes'])
+            average_chars = char_count/count
+            summary = {'count':count, 'average_chars':average_chars}
+            user_reply_dict[user_id]['summary'] = summary
+            
+        return user_reply_dict
+
+    # if user have replied to an issue
+    def get_issue_reply_history_for_user(self, user, issue):
+        user_reply_dict = self.get_issue_reply_history_from_journal(issue)
+        reply_of_user = {'summary':{},'details':[]}
+        if user.id in user_reply_dict:
+            details = user_reply_dict[user.id]
+            reply_of_user['details'] = details
+            count = len(details)
+            char_count = 0
+            for detail in details:
+                char_count = char_count + len(detail['notes'])
+            average_chars = char_count/count
+            summary = {'count':count, 'average_chars':average_chars}
+            reply_of_user['summary'] = summary
+            return reply_of_user
         return None
 
     # get tickets working by certain user_id 
@@ -270,3 +376,4 @@ class RedmineAPIClient:
             user = self.get_user_by_id(user_id)
             print("%s %s: %s" % (user.lastname, user.firstname, working_by_user[user.id]))
         print("-" * 10)
+

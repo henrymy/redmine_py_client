@@ -23,7 +23,6 @@ config = utils.load_conf(LOCAL_PATH, CONFIG_FILE_NAME)
 REDMINE_URL = config['redmine']['url']
 API_KEY = config['redmine']['api_key']
 PARENT_PRJ_ID = config['redmine']['parent_prj_id']
-DEV_MEMS = config['dev_members']
 
 DEBUG = config['debug']['trace']
 if DEBUG:
@@ -37,7 +36,7 @@ if FAKE_ISSUES:
 else:
     redmine = base.RedmineAPIClient(REDMINE_URL, API_KEY)
 
-issue_id = '79702'
+issue_id = '86008'
 issue = redmine.get_issue_by_id(issue_id)
 print(issue)
 """
