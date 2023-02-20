@@ -168,7 +168,8 @@ for issue in status_issues:
         check_this_id = redmine.if_working_by_user_list(issue, user_id_list) 
         user_name = get_username(check_this_id)
         columns = [str(issue.id), str(issue.status), str(ckkb_step_value), issue.subject,
-            str(issue.project), skill_code, skill_name, user_name, str(issue.priority), str(issue.created_on)]
+            str(issue.project), skill_code, skill_name, user_name, str(issue.priority),
+            str(issue.created_on), str(issue.updated_on)]
         print("%s" % ",".join(columns))
         continue
     # 2nd: check ticket ckkb-step for ops/gantry
@@ -178,7 +179,8 @@ for issue in status_issues:
         skill_name = user_skill_name[check_this_id]
         user_name = get_username(check_this_id)
         columns = [str(issue.id), str(issue.status), str(ckkb_step_value), issue.subject,
-            str(issue.project), skill_code, skill_name, user_name, str(issue.priority), str(issue.created_on)]
+            str(issue.project), skill_code, skill_name, user_name, str(issue.priority),
+            str(issue.created_on), str(issue.updated_on)]
         print("%s" % ",".join(columns))
         continue
     # 3rd: check other ticket for only dev and sd members
@@ -187,7 +189,8 @@ for issue in status_issues:
     skill_name = user_skill_name[check_this_id]
     user_name = get_username(check_this_id)
     columns = [str(issue.id), str(issue.status), str(ckkb_step_value), issue.subject,
-        str(issue.project), skill_code, skill_name, user_name, str(issue.priority), str(issue.created_on)]
+        str(issue.project), skill_code, skill_name, user_name, str(issue.priority), 
+        str(issue.created_on), str(issue.updated_on)]
     print("%s" % ",".join(columns))
 
     
