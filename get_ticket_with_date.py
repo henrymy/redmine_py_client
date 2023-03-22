@@ -161,6 +161,9 @@ for issue in status_issues:
         ckkb_step_value = '-'
     else:
         ckkb_step_value = ckkb_step.value
+    update_count = len(issue.journals)
+    init_action_date = redmine.get_issue_init_action_date(issue)
+    related_issues_str = redmine.get_issue_related_issues_str(issue)
     # 1st: check ticket status for service desk
     if issue.status.id in [1, 30]:
         skill_code = '"1099,9101"'
@@ -169,7 +172,9 @@ for issue in status_issues:
         user_name = get_username(check_this_id)
         columns = [str(issue.id), str(issue.status), str(ckkb_step_value), issue.subject,
             str(issue.project), skill_code, skill_name, user_name, str(issue.priority),
-            str(issue.created_on), str(issue.updated_on)]
+            str(update_count),str(issue.created_on), 
+            str(init_action_date),str(issue.updated_on),
+            related_issues_str]
         print("%s" % ",".join(columns))
         continue
     # 2nd: check ticket ckkb-step for ops/gantry
@@ -180,7 +185,9 @@ for issue in status_issues:
         user_name = get_username(check_this_id)
         columns = [str(issue.id), str(issue.status), str(ckkb_step_value), issue.subject,
             str(issue.project), skill_code, skill_name, user_name, str(issue.priority),
-            str(issue.created_on), str(issue.updated_on)]
+            str(update_count),str(issue.created_on), 
+            str(init_action_date),str(issue.updated_on),
+            related_issues_str]
         print("%s" % ",".join(columns))
         continue
     # 3rd: check other ticket for only dev and sd members
@@ -189,8 +196,10 @@ for issue in status_issues:
     skill_name = user_skill_name[check_this_id]
     user_name = get_username(check_this_id)
     columns = [str(issue.id), str(issue.status), str(ckkb_step_value), issue.subject,
-        str(issue.project), skill_code, skill_name, user_name, str(issue.priority), 
-        str(issue.created_on), str(issue.updated_on)]
+        str(issue.project), skill_code, skill_name, user_name, str(issue.priority),
+        str(update_count),str(issue.created_on), 
+        str(init_action_date),str(issue.updated_on),
+        related_issues_str]
     print("%s" % ",".join(columns))
 
     

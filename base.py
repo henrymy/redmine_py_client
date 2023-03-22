@@ -67,7 +67,12 @@ class RedmineAPIClient:
 
     # get issue detail by issue id
     def get_issue_by_id(self, issue_id):
-        issue_obj = self.redmine.issue.get(issue_id, include=['journals'])
+        issue_obj = self.redmine.issue.get(issue_id, include=['journals','relations'])
+        return issue_obj
+
+    # get issue detail by issue id light type
+    def get_issue_by_id_lite(self, issue_id):
+        issue_obj = self.redmine.issue.get(issue_id)
         return issue_obj
 
     # get issues in project filtered by status
@@ -142,6 +147,35 @@ class RedmineAPIClient:
             return custom_fields
         return []
 
+    # get issue related issues
+    # input para: issue object
+    # return value: list of issue objs, return empty list if no related issues exist
+    def get_issue_related_issues(self, issue):
+        related_issue_list = []
+        try:
+            for related in issue.relations:
+                related_issue = self.get_issue_by_id_lite(related.issue_id)
+                related_issue_list.append(related_issue)
+        # no relation issue exists
+        except redmine_exceptions.ForbiddenError:
+            pass
+        return related_issue_list
+
+    # get issue related issues in string format
+    # input para: issue object
+    # return value: return empty str if no related issues exist
+    def get_issue_related_issues_str(self, issue, delimiter=';'):
+        issues_str = ''
+        issues_list = self.get_issue_related_issues(issue)
+        if not issues_list:
+            return issues_str
+        issue_info_list = []
+        for issue in issues_list:
+            issue_info = str(issue.id) + ' ' + issue.subject
+            issue_info_list.append(issue_info)
+        issues_str = delimiter.join(issue_info_list)
+        return issues_str
+
     # get issue step info obj
     # input para: issue object
     # return value: custom field type obj
@@ -173,14 +207,29 @@ class RedmineAPIClient:
     def get_issue_status_history(self, issue):
         status_history = []
         for journal in issue.journals:
+            if journal.details == []:
+                continue
             for detail in journal.details:
                 if detail['property'] == 'attr' and detail['name'] == 'status_id':
-                    status = self.get_status_by_id(detail['new_value'])
+                    old_status = self.get_status_by_id(int(detail['old_value']))
+                    new_status = self.get_status_by_id(int(detail['new_value']))
                     status_history.append(
                         {'updated_on':journal['created_on'],
-                        'status':status})
+                        'old_status':old_status,
+                        'new_status':new_status})
                     continue
         return status_history
+
+    # get issue initial action date from journal
+    # input para: issue object
+    # return value: datetime object of timestamp
+    def get_issue_init_action_date(self, issue):
+        status_history = self.get_issue_status_history(issue)
+        if status_history == []:
+            return None
+        for status in status_history:
+            if status['new_status'].id == 31 or status['new_status'].id == 42:
+                return status['updated_on']
 
     # get issue assigned change history from journal
     # input para: issue object
