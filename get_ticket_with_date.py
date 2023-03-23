@@ -104,6 +104,9 @@ for mem in OPS:
 for mem in GTY:
     user_skill_code[mem['user_id']] = '"1099,9103"'
     user_skill_name[mem['user_id']] = '"その他,GANTRY"'
+# for new ticket before assigne to any member user_id will be False
+user_skill_code[False] = 'N/A'
+user_skill_name[False] = 'N/A'
 
 # build a list with user_id to calculate number of working tickets 
 user_id_list = []
