@@ -15,7 +15,8 @@ import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--ticket-csv', help='full path of input file in csv contains issues info.')
-parser.add_argument('--expire-days', type=int, help='number of days after which issue becomes staled(defualt:14).')
+parser.add_argument('--expire-days', type=int,
+                    default=14, help='number of days after which issue becomes staled(defualt:14).')
 args = parser.parse_args()
 
 LOCAL_PATH = os.getcwd()
