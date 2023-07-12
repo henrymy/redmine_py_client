@@ -18,8 +18,10 @@ import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--prj-id', help='project id or identifier in url.')
+parser.add_argument('--with-users', action='store_true', help='add this switch to output users too.')
 args = parser.parse_args()
 prj_id = args.prj_id
+with_users = args.with_users
 
 LOCAL_PATH = os.getcwd()
 LOCAL_PATH += '/'
@@ -55,7 +57,8 @@ for membership in prj.memberships:
         print(','.join([prj.name, prj.identifier, 'group', group_name, role_str]))
     if getattr(member_obj,'user', False):
         user_name = member_obj.user.name
-        print(','.join([prj.name, prj.identifier, 'user', user_name, role_str]))
+        if with_users:
+            print(','.join([prj.name, prj.identifier, 'user', user_name, role_str]))
 
 """
 prj_id ='651'

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 import base64
 from datetime import date, timedelta
 from email.mime.text import MIMEText
@@ -14,6 +15,11 @@ from redminelib import exceptions as redmine_exceptions
 
 import base
 import utils
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--with-users', action='store_true', help='add this switch to output users too.')
+args = parser.parse_args()
+with_users = args.with_users
 
 LOCAL_PATH = os.getcwd()
 LOCAL_PATH += '/'
@@ -50,7 +56,8 @@ for prj in project_list:
             print(','.join([prj.name, prj.identifier, 'group', group_name, role_str]))
         if getattr(member_obj,'user', False):
             user_name = member_obj.user.name
-            print(','.join([prj.name, prj.identifier, 'user', user_name, role_str]))
+            if with_users:
+                print(','.join([prj.name, prj.identifier, 'user', user_name, role_str]))
 
 """
 prj_id ='651'
