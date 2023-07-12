@@ -53,8 +53,9 @@ for membership in prj.memberships:
         role_list.append(role.name)
     role_str = '+'.join(role_list)
     if getattr(member_obj,'group', False):
+        group_id = member_obj.group.id
         group_name = member_obj.group.name
-        print(','.join([prj.name, prj.identifier, 'group', group_name, role_str]))
+        print(','.join([prj.name, prj.identifier, 'group', group_name, str(group_id), role_str]))
     if getattr(member_obj,'user', False):
         user_name = member_obj.user.name
         if with_users:
