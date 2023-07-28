@@ -380,9 +380,16 @@ class RedmineAPIClient:
         # build a dict with user_id as keys to calculate number of working tickets
         pass
 
+    # issue is a ticket obj.
+    # set multi properties at same time.
+    # e.g. assigned_to_id=<user id>, notes='some message'
+    # e.g. custom_fields=[{'id': 1, 'value': 'foo'}]
     def set_issue_property(self, issue, **kwargs):
-        #issue is a ticket obj.
         self.redmine.issue.update(issue.id, **kwargs)
+
+    def set_issue_assigned_to(self, issue, user_id=None):
+        # set issue assigned_to with specific user id
+        self.set_issue_property(issue, assigned_to_id=user_id)
 
     def reply_to_issue(self, issue, notes=''):
         # reply to issue with specific note
